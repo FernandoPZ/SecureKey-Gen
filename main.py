@@ -1,15 +1,9 @@
-# main.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pyperclip
-
-# Importamos nuestra propia librería de lógica
 import security
 
-# ==========================================
-# FUNCIONES PUENTE (Conectan la UI con la Lógica)
-# ==========================================
-
+# FUNCIONES PUENTE
 def aplicar_preset(seleccion):
     var_min.set(False); var_mayus.set(False)
     var_num.set(False); var_sym.set(False)
@@ -27,8 +21,7 @@ def aplicar_preset(seleccion):
 
 def generar_y_mostrar_ui():
     longitud = int(scale_longitud.get())
-    
-    # Llamamos a nuestro módulo security
+
     pwd = security.generar_clave(
         longitud, var_min.get(), var_mayus.get(), var_num.get(), var_sym.get()
     )
@@ -74,9 +67,7 @@ def evento_analizar_ui(event):
     text_sugerencias.insert(tk.END, "\n".join(sugerencias))
     text_sugerencias.config(state='disabled')
 
-# ==========================================
 # INTERFAZ GRÁFICA PRINCIPAL
-# ==========================================
 root = tk.Tk()
 root.title("KeyForge Suite v2.2")
 root.geometry("450x700")
@@ -143,5 +134,12 @@ canvas_ana.pack(fill='x', padx=60)
 tk.Label(tab_ana, text="Sugerencias de mejora:", bg="#F5F5F5", font=("Arial", 9, "italic")).pack(pady=(20,0))
 text_sugerencias = tk.Text(tab_ana, height=8, width=40, state='disabled', bg="#EEE")
 text_sugerencias.pack(pady=10, padx=40)
+
+# INICIALIZACIÓN
+exito, cantidad = security.actualizar_diccionario_online()
+if exito:
+    print(f"Base de datos de seguridad actualizada: {cantidad} claves filtradas cargadas.")
+else:
+    print("Modo sin conexión: Usando base de datos de seguridad local.")
 
 root.mainloop()

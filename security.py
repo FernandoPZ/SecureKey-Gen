@@ -7,6 +7,13 @@ CONTRASENAS_VULNERABLES = {
     "123456", "password", "admin", "12345678", "12345", "qwerty"
 }
 
+PINS_PROHIBIDOS = {
+    "0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999", # Repeticiones
+    "1234", "2345", "3456", "4567", "5678", "6789", # Secuencias ascendentes
+    "9876", "8765", "7654", "6543", "5432", "4321", # Secuencias descendentes
+    "2580", "0852", "1379", "9731", "1212", "6969"  # Patrones de teclado visuales
+}
+
 def actualizar_diccionario_online():
     """Descarga la lista específica de credenciales comunes en español."""
     global CONTRASENAS_VULNERABLES
@@ -39,11 +46,10 @@ def actualizar_diccionario_online():
 
 # LÓGICA DE GENERACIÓN
 def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):
-    """Genera una contraseña criptográficamente segura garantizando al menos un carácter de cada tipo seleccionado."""
+    """Genera una contraseña criptográficamente segura, con filtro de calidad para PINs."""
     chars_permitidos = ""
     caracteres_obligatorios = []
     
-    # 1. Asegurar al menos un carácter de cada grupo seleccionado
     if usar_min:
         chars_permitidos += string.ascii_lowercase
         caracteres_obligatorios.append(secrets.choice(string.ascii_lowercase))
@@ -60,20 +66,25 @@ def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):
     if not chars_permitidos:
         return None 
         
-    # 2. Verificar si la longitud pedida es menor que los grupos seleccionados (ej. longitud 2, pero pide 4 tipos)
-    if longitud < len(caracteres_obligatorios):
-        resultado = caracteres_obligatorios[:longitud]
-    else:
-        # 3. Rellenar el resto de la contraseña
-        faltantes = longitud - len(caracteres_obligatorios)
-        resto_caracteres = [secrets.choice(chars_permitidos) for _ in range(faltantes)]
-        resultado = caracteres_obligatorios + resto_caracteres
+    # --- BUCLE DE GENERACIÓN Y FILTRADO ---
+    while True:
+        if longitud < len(caracteres_obligatorios):
+            resultado = caracteres_obligatorios[:longitud]
+        else:
+            faltantes = longitud - len(caracteres_obligatorios)
+            resto_caracteres = [secrets.choice(chars_permitidos) for _ in range(faltantes)]
+            resultado = caracteres_obligatorios + resto_caracteres
+            
+        generador_seguro = secrets.SystemRandom()
+        generador_seguro.shuffle(resultado)
+        clave_final = ''.join(resultado)
         
-    # 4. Mezclar de forma segura para evitar patrones predecibles (ej. que siempre empiece con minúscula)
-    generador_seguro = secrets.SystemRandom()
-    generador_seguro.shuffle(resultado)
-    
-    return ''.join(resultado)
+        # Filtro Inteligente: Si es solo números y está en nuestra lista negra, RECHÁZALO y vuelve a intentar
+        es_solo_numeros = usar_num and not (usar_min or usar_mayus or usar_sym)
+        if es_solo_numeros and clave_final in PINS_PROHIBIDOS:
+            continue # El 'continue' hace que el bucle 'while' vuelva a empezar mágicamente
+            
+        return clave_final # Si pasa el filtro (o no es un PIN), lo entregamos
 
 def generar_hexadecimal(longitud):
     return secrets.token_hex(longitud // 2)

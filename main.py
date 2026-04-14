@@ -1,71 +1,54 @@
+# main.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-import secrets
-import string
 import pyperclip
 
+# Importamos nuestra propia librería de lógica
+import security
+
 # ==========================================
-# LÓGICA DE LA PESTAÑA 1: GENERADOR
+# FUNCIONES PUENTE (Conectan la UI con la Lógica)
 # ==========================================
 
 def aplicar_preset(seleccion):
-    """Ajusta los controles según el estándar seleccionado."""
-    # Resetear checkboxes
     var_min.set(False); var_mayus.set(False)
     var_num.set(False); var_sym.set(False)
     
     if seleccion == "PIN (4 dígitos)":
-        scale_longitud.set(4)
-        var_num.set(True)
+        scale_longitud.set(4); var_num.set(True)
     elif seleccion == "Código Temporal (6 caps)":
-        scale_longitud.set(6)
-        var_mayus.set(True); var_num.set(True)
+        scale_longitud.set(6); var_mayus.set(True); var_num.set(True)
     elif seleccion == "Estándar Web (8 chars)":
-        scale_longitud.set(8)
-        var_min.set(True); var_mayus.set(True); var_num.set(True); var_sym.set(True)
+        scale_longitud.set(8); var_min.set(True); var_mayus.set(True); var_num.set(True); var_sym.set(True)
     elif seleccion == "Seguridad Máxima (16 chars)":
-        scale_longitud.set(16)
-        var_min.set(True); var_mayus.set(True); var_num.set(True); var_sym.set(True)
+        scale_longitud.set(16); var_min.set(True); var_mayus.set(True); var_num.set(True); var_sym.set(True)
     elif seleccion == "Llave Cripto (Hex)":
-        generar_hex()
-        return # Evita ejecutar la generación normal
+        generar_hex_ui()
 
-def evaluar_seguridad_gen(password):
-    longitud = len(password)
-    score = sum([
-        longitud >= 12,
-        any(c in string.ascii_uppercase for c in password),
-        any(c in string.ascii_lowercase for c in password),
-        any(c in string.digits for c in password),
-        any(c in string.punctuation for c in password)
-    ])
-    if longitud < 8 or score < 3: return "#FF4C4C", "DÉBIL"
-    elif score == 4: return "#FFD700", "MEDIA"
-    else: return "#4CAF50", "FUERTE"
-
-def generar_y_mostrar():
+def generar_y_mostrar_ui():
     longitud = int(scale_longitud.get())
-    chars = ""
-    if var_min.get(): chars += string.ascii_lowercase
-    if var_mayus.get(): chars += string.ascii_uppercase
-    if var_num.get(): chars += string.digits
-    if var_sym.get(): chars += string.punctuation
     
-    if not chars:
+    # Llamamos a nuestro módulo security
+    pwd = security.generar_clave(
+        longitud, var_min.get(), var_mayus.get(), var_num.get(), var_sym.get()
+    )
+    
+    if pwd is None:
         messagebox.showwarning("Atención", "Selecciona al menos un tipo de carácter.")
         return
         
-    pwd = ''.join(secrets.choice(chars) for _ in range(longitud))
     entry_gen.delete(0, tk.END)
     entry_gen.insert(0, pwd)
     
-    color, texto = evaluar_seguridad_gen(pwd)
+    # Auditamos la clave generada para colorear la barra
+    color, texto, _ = security.auditar_clave(pwd)
     canvas_gen.config(bg=color)
     label_status_gen.config(text=f"Seguridad: {texto}", fg=color)
 
-def generar_hex():
+def generar_hex_ui():
     longitud = int(scale_longitud.get())
-    llave = secrets.token_hex(longitud // 2)
+    llave = security.generar_hexadecimal(longitud)
+    
     entry_gen.delete(0, tk.END)
     entry_gen.insert(0, llave)
     canvas_gen.config(bg="#2196F3")
@@ -77,40 +60,12 @@ def copiar_clave():
         pyperclip.copy(clave)
         messagebox.showinfo("KeyForge", "¡Copiado al portapapeles!")
 
-# ==========================================
-# LÓGICA DE LA PESTAÑA 2: ANALIZADOR
-# ==========================================
-
-def analizar_password(password):
-    if not password:
-        return "#DDD", "Escribe algo...", []
-    
-    longitud = len(password)
-    fallos = []
-    score = 0
-    
-    if longitud < 8: fallos.append("- Muy corta (mín. 8)")
-    elif longitud >= 12: score += 1
-    
-    if any(c in string.ascii_uppercase for c in password): score += 1
-    else: fallos.append("- Falta Mayúscula")
-    
-    if any(c in string.ascii_lowercase for c in password): score += 1
-    else: fallos.append("- Falta Minúscula")
-    
-    if any(c in string.digits for c in password): score += 1
-    else: fallos.append("- Falta Número")
-    
-    if any(c in string.punctuation for c in password): score += 1
-    else: fallos.append("- Falta Símbolo")
-
-    if score <= 2: return "#FF4C4C", "CRÍTICA", fallos
-    if score <= 4: return "#FFD700", "ACEPTABLE", fallos
-    return "#4CAF50", "EXCELENTE", ["¡Contraseña muy robusta!"]
-
-def evento_analizar(event):
+def evento_analizar_ui(event):
     pwd = entry_analizar.get()
-    color, texto, sugerencias = analizar_password(pwd)
+    
+    # Llamamos a nuestro módulo security
+    color, texto, sugerencias = security.auditar_clave(pwd)
+    
     canvas_ana.config(bg=color)
     label_status_ana.config(text=f"Estado: {texto}", fg=color)
     
@@ -123,8 +78,8 @@ def evento_analizar(event):
 # INTERFAZ GRÁFICA PRINCIPAL
 # ==========================================
 root = tk.Tk()
-root.title("KeyForge Suite v2.1")
-root.geometry("450x700") # Ventana ligeramente más alta para acomodar todo
+root.title("KeyForge Suite v2.2")
+root.geometry("450x700")
 
 notebook = ttk.Notebook(root)
 notebook.pack(fill='both', expand=True)
@@ -135,23 +90,14 @@ notebook.add(tab_gen, text=" ⚒️ Generador ")
 
 tk.Label(tab_gen, text="🛡️ KeyForge", font=("Arial", 20, "bold"), bg="#F5F5F5").pack(pady=10)
 
-# Presets
 frame_presets = tk.LabelFrame(tab_gen, text=" Ajustes Predefinidos ", padx=10, pady=5, bg="#F5F5F5")
 frame_presets.pack(padx=20, fill="x")
 
-opciones_presets = [
-    "PIN (4 dígitos)", 
-    "Código Temporal (6 caps)", 
-    "Estándar Web (8 chars)", 
-    "Seguridad Máxima (16 chars)",
-    "Llave Cripto (Hex)"
-]
+opciones_presets = ["PIN (4 dígitos)", "Código Temporal (6 caps)", "Estándar Web (8 chars)", "Seguridad Máxima (16 chars)", "Llave Cripto (Hex)"]
 var_preset = tk.StringVar(tab_gen)
 var_preset.set("Seleccionar estándar...")
-drop_presets = tk.OptionMenu(frame_presets, var_preset, *opciones_presets, command=aplicar_preset)
-drop_presets.pack(fill="x")
+tk.OptionMenu(frame_presets, var_preset, *opciones_presets, command=aplicar_preset).pack(fill="x")
 
-# Configuración Manual
 frame_config = tk.LabelFrame(tab_gen, text=" Configuración Manual ", padx=20, pady=5, bg="#F5F5F5")
 frame_config.pack(padx=20, fill="x", pady=10)
 
@@ -167,8 +113,7 @@ tk.Checkbutton(frame_config, text="Mayúsculas", variable=var_mayus, bg="#F5F5F5
 tk.Checkbutton(frame_config, text="Números", variable=var_num, bg="#F5F5F5").pack(anchor="w")
 tk.Checkbutton(frame_config, text="Símbolos", variable=var_sym, bg="#F5F5F5").pack(anchor="w")
 
-# Botones y Salida Generador
-tk.Button(tab_gen, text="GENERAR", command=generar_y_mostrar, bg="#2E7D32", fg="white", font=("Arial", 12, "bold")).pack(pady=10, fill="x", padx=50)
+tk.Button(tab_gen, text="GENERAR", command=generar_y_mostrar_ui, bg="#2E7D32", fg="white", font=("Arial", 12, "bold")).pack(pady=10, fill="x", padx=50)
 entry_gen = tk.Entry(tab_gen, font=("Consolas", 14), justify='center', bd=2)
 entry_gen.pack(pady=5, padx=20, fill="x")
 tk.Button(tab_gen, text="📋 Copiar", command=copiar_clave, bg="#1976D2", fg="white").pack(pady=5)
@@ -177,7 +122,6 @@ label_status_gen = tk.Label(tab_gen, text="Listo para forjar", font=("Arial", 9)
 label_status_gen.pack()
 canvas_gen = tk.Canvas(tab_gen, height=8, bg="#DDD", highlightthickness=0)
 canvas_gen.pack(fill="x", padx=60, pady=5)
-
 
 # --- PESTAÑA 2: ANALIZADOR ---
 tab_ana = tk.Frame(notebook, bg="#F5F5F5")
@@ -188,7 +132,7 @@ tk.Label(tab_ana, text="Ingresa una contraseña para evaluarla:", bg="#F5F5F5").
 
 entry_analizar = tk.Entry(tab_ana, font=("Consolas", 14), justify='center', show="*")
 entry_analizar.pack(pady=10, padx=20, fill='x')
-entry_analizar.bind("<KeyRelease>", evento_analizar)
+entry_analizar.bind("<KeyRelease>", evento_analizar_ui)
 
 label_status_ana = tk.Label(tab_ana, text="Estado: Esperando...", font=("Arial", 10, "bold"), bg="#F5F5F5")
 label_status_ana.pack(pady=5)

@@ -1,0 +1,19 @@
+# ==========================================
+# Caché y código compilado de Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ==========================================
+# Entornos Virtuales (Buenas prácticas a futuro)
+# ==========================================
+venv/
+env/
+.venv/
+
+# ==========================================
+# Archivos del Sistema Operativo
+# ==========================================
+.DS_Store
+Thumbs.db

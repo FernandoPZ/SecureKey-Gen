@@ -7,6 +7,14 @@ Un generador de credenciales criptográficamente seguro desarrollado en Python.
 - **Medidor de Seguridad:** Evaluación en tiempo real de la fortaleza de la clave.
 - **Interfaz Intuitiva:** Desarrollado con Tkinter para una experiencia ligera.
 
+## Requisitos
+Para el correcto funcionamiento de la opción "Copiar", este proyecto requiere la librería `pyperclip`.
+
+### Instalación de dependencias:
+```bash
+pip install -r requirements.txt
+```
+
 ## Cómo ejecutar
 1. Asegúrate de tener Python 3 instalado.
 2. Clona este repositorio.

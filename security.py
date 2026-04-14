@@ -8,39 +8,72 @@ CONTRASENAS_VULNERABLES = {
 }
 
 def actualizar_diccionario_online():
-    """Se conecta a internet para descargar las contraseñas más vulnerables."""
+    """Descarga la lista específica de credenciales comunes en español."""
     global CONTRASENAS_VULNERABLES
 
     url = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/Language-Specific/Spanish_common-usernames-and-passwords.txt"
-
-    headers = {
-        "User-Agent": "KeyForgeApp/1.0 (Python Security Tool)"
-    }
+    
+    headers = {"User-Agent": "KeyForgeApp/1.0"}
     
     try:
-        respuesta = requests.get(url, headers=headers, timeout=5)
+        respuesta = requests.get(url, headers=headers, timeout=7)
         if respuesta.status_code == 200:
-            claves_descargadas = respuesta.text.lower().splitlines()
-            CONTRASENAS_VULNERABLES.update(claves_descargadas)
-            return True, len(claves_descargadas)
-        else:
-            print(f"⚠️ Error del servidor: El código de estado fue {respuesta.status_code}")
+            lineas = respuesta.text.lower().splitlines()
+            nuevas_claves = set()
+            
+            for linea in lineas:
+                # Si la línea tiene formato usuario:contraseña, extraemos ambas partes
+                if ":" in linea:
+                    partes = linea.split(":")
+                    nuevas_claves.update([p.strip() for p in partes if p.strip()])
+                else:
+                    nuevas_claves.add(linea.strip())
+            
+            CONTRASENAS_VULNERABLES.update(nuevas_claves)
+            return True, len(nuevas_claves)
             
     except requests.RequestException as e:
-        print(f"⚠️ Error de red detallado: {e}")
+        print(f"⚠️ Error al conectar con la lista española: {e}")
         
     return False, len(CONTRASENAS_VULNERABLES)
 
 # LÓGICA DE GENERACIÓN
 def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):
-    chars = ""
-    if usar_min: chars += string.ascii_lowercase
-    if usar_mayus: chars += string.ascii_uppercase
-    if usar_num: chars += string.digits
-    if usar_sym: chars += string.punctuation
+    """Genera una contraseña criptográficamente segura garantizando al menos un carácter de cada tipo seleccionado."""
+    chars_permitidos = ""
+    caracteres_obligatorios = []
     
-    if not chars: return None 
-    return ''.join(secrets.choice(chars) for _ in range(longitud))
+    # 1. Asegurar al menos un carácter de cada grupo seleccionado
+    if usar_min:
+        chars_permitidos += string.ascii_lowercase
+        caracteres_obligatorios.append(secrets.choice(string.ascii_lowercase))
+    if usar_mayus:
+        chars_permitidos += string.ascii_uppercase
+        caracteres_obligatorios.append(secrets.choice(string.ascii_uppercase))
+    if usar_num:
+        chars_permitidos += string.digits
+        caracteres_obligatorios.append(secrets.choice(string.digits))
+    if usar_sym:
+        chars_permitidos += string.punctuation
+        caracteres_obligatorios.append(secrets.choice(string.punctuation))
+    
+    if not chars_permitidos:
+        return None 
+        
+    # 2. Verificar si la longitud pedida es menor que los grupos seleccionados (ej. longitud 2, pero pide 4 tipos)
+    if longitud < len(caracteres_obligatorios):
+        resultado = caracteres_obligatorios[:longitud]
+    else:
+        # 3. Rellenar el resto de la contraseña
+        faltantes = longitud - len(caracteres_obligatorios)
+        resto_caracteres = [secrets.choice(chars_permitidos) for _ in range(faltantes)]
+        resultado = caracteres_obligatorios + resto_caracteres
+        
+    # 4. Mezclar de forma segura para evitar patrones predecibles (ej. que siempre empiece con minúscula)
+    generador_seguro = secrets.SystemRandom()
+    generador_seguro.shuffle(resultado)
+    
+    return ''.join(resultado)
 
 def generar_hexadecimal(longitud):
     return secrets.token_hex(longitud // 2)

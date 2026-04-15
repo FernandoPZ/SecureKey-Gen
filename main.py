@@ -176,12 +176,11 @@ class KeyForgeApp(ctk.CTk):
         self.menu = ctk.CTkOptionMenu(f_top, variable=self.var_preset, values=opts, command=self.aplicar_preset, fg_color="#333333", button_color="#444444")
         self.menu.pack(side="left", fill="x", expand=True)
 
-        # NUEVO: Contenedor estático para la longitud (Evita el "Salto de Diseño")
+        # Contenedor estático
         self.cont_longitud = ctk.CTkFrame(f_top, fg_color="transparent", width=220, height=30)
-        self.cont_longitud.pack_propagate(False) # ¡La magia que congela el tamaño!
+        self.cont_longitud.pack_propagate(False)
         self.cont_longitud.pack(side="right", padx=(10, 0))
 
-        # Creamos los elementos, pero los guardamos dentro del contenedor estático
         self.lbl_long_txt = ctk.CTkLabel(self.cont_longitud, text="8 chars", font=("Arial", 12, "bold"), width=70)
         self.slider_long = ctk.CTkSlider(self.cont_longitud, from_=4, to=64, command=self.cambio_slider, width=130, progress_color="#666666", button_color="#888888")
         self.seg_hex = ctk.CTkSegmentedButton(self.cont_longitud, values=["32", "64", "128"], selected_color="#555555", unselected_color="#222222")

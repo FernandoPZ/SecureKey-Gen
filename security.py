@@ -1,6 +1,7 @@
 import secrets
 import string
 import requests
+import math
 
 # BASES DE DATOS Y DICCIONARIOS LOCALES
 CONTRASENAS_VULNERABLES = {
@@ -116,35 +117,66 @@ def generar_frase(num_palabras=4):
     return "-".join(seleccion)
 
 # LÓGICA DE AUDITORÍA
+def formatear_tiempo(segundos):
+    """Convierte segundos en una escala de tiempo comprensible."""
+    if segundos < 1: return "Instántaneo [!!!]"
+    if segundos < 60: return "Unos Segundos [!!!]"
+    if segundos < 3600: return f"{int(segundos // 60)} Minutos [!!]"
+    if segundos < 86400: return f"{int(segundos // 3600)} Horas [!]"
+    if segundos < 31536000: return f"{int(segundos // 86400)} Días"
+    if segundos < 3153600000: return f"{int(segundos // 31536000)} Años"
+    return "Siglos [Inquebrantable]"
+
 def auditar_clave(password):
-    if not password: return "#DDD", "Esperando entrada...", []
+    if not password: 
+        return "#444444", "Esperando entrada...", []
     
     if password.lower() in CONTRASENAS_VULNERABLES:
-        return "#8B0000", "VULNERABLE", [
-            "¡PELIGRO EXTREMO!",
-            "- Esta clave está en listas públicas de hackers.",
-            "- Nunca la utilices en cuentas reales."
+        return "#FF4444", "VULNERABLE", [
+            "¡PELIGRO EXTREMO: CLAVE FILTRADA!",
+            "Esta contraseña se encuentra en listas",
+            "Tiempo de hackeo: 0.00 milisegundos."
         ]
     
     longitud = len(password)
-    fallos = []
-    score = 0
     
-    if longitud < 8: fallos.append("- Muy corta (mín. 8 caracteres)")
-    elif longitud >= 12: score += 1
+    # Comprobación de características
+    has_min = any(c in string.ascii_lowercase for c in password)
+    has_may = any(c in string.ascii_uppercase for c in password)
+    has_num = any(c in string.digits for c in password)
+    has_sym = any(c in string.punctuation for c in password)
     
-    if any(c in string.ascii_uppercase for c in password): score += 1
-    else: fallos.append("- Falta Mayúscula")
+    # Cálculo del tamaño del bloque (R)
+    R = 0
+    if has_min: R += 26
+    if has_may: R += 26
+    if has_num: R += 10
+    if has_sym: R += 32
     
-    if any(c in string.ascii_lowercase for c in password): score += 1
-    else: fallos.append("- Falta Minúscula")
+    # Entropía E = L * log2(R)
+    entropia = longitud * math.log2(R) if R > 0 else 0
     
-    if any(c in string.digits for c in password): score += 1
-    else: fallos.append("- Falta Número")
+    # Combinaciones totales y Tiempo estimado (10 mil millones de intentos por seg)
+    combinaciones = R ** longitud
+    segundos_hackeo = combinaciones / 10_000_000_000
     
-    if any(c in string.punctuation for c in password): score += 1
-    else: fallos.append("- Falta Símbolo")
-
-    if score <= 2: return "#FF4C4C", "DÉBIL", fallos
-    if score <= 4: return "#FFD700", "MEDIA", fallos
-    return "#4CAF50", "FUERTE", ["¡Contraseña muy robusta!"]
+    tiempo_str = formatear_tiempo(segundos_hackeo)
+    
+    # Construcción del reporte profesional
+    reporte = [
+        "───    ANÁLISIS CRIPTOGRÁFICO  ───",
+        f"Entropía:    {entropia:.1f} bits",
+        f"Descifrado : {tiempo_str}",
+        "",
+        "───         PARAMETROS         ───",
+        f"[{'OK' if longitud >= 8 else 'NO'}] Longitud mínima (8+)",
+        f"[{'OK' if has_min else 'NO'}] Minúsculas (a-z)",
+        f"[{'OK' if has_may else 'NO'}] Mayúsculas (A-Z)",
+        f"[{'OK' if has_num else 'NO'}] Números (0-9)",
+        f"[{'OK' if has_sym else 'NO'}] Símbolos especiales"
+    ]
+    
+    # Asignación de colores basada en la Entropía real
+    if entropia < 40: return "#FF6B6B", "DÉBIL", reporte
+    if entropia < 65: return "#FFD93D", "MEDIA", reporte
+    return "#28C76F", "FUERTE", reporte

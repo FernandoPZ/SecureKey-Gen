@@ -227,7 +227,7 @@ class KeyForgeApp(ctk.CTk):
         self.ent_ana.bind("<KeyRelease>", self.ejecutar_auditoria)
         
         self.bar_ana = ctk.CTkProgressBar(t_ana, height=10); self.bar_ana.set(0); self.bar_ana.pack(fill="x", padx=20, pady=10)
-        self.txt_sug = ctk.CTkTextbox(t_ana, height=150, fg_color="#1a1a1a", state="disabled")
+        self.txt_sug = ctk.CTkTextbox(t_ana, height=180, fg_color="#1a1a1a", state="disabled", font=("Consolas", 13))
         self.txt_sug.pack(fill="both", expand=True, padx=20, pady=10)
 
     def ejecutar_auditoria(self, event=None):

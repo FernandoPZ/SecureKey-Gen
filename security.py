@@ -2,9 +2,7 @@ import secrets
 import string
 import requests
 
-# ==========================================
 # BASES DE DATOS Y DICCIONARIOS LOCALES
-# ==========================================
 CONTRASENAS_VULNERABLES = {
     "123456", "123456789", "12345678", "12345", "1234567", "111111", "1234", "123123", 
     "qwerty", "qwertyuiop", "asdfgh", "zxcvbnm", "1q2w3e", "000000",
@@ -15,13 +13,11 @@ CONTRASENAS_VULNERABLES = {
     "sistemas", "usuario", "invitado", "secreto", "dios",
     "carlos", "daniel", "alejandro", "andrea", "maria", "juan", "david", "jorge", "pedro"
 }
-
 PINS_PROHIBIDOS = {
     "0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999", 
     "1234", "2345", "3456", "4567", "5678", "6789", "9876", "8765", "7654", "6543", 
     "5432", "4321", "2580", "0852", "1379", "9731", "1212", "6969"
 }
-
 PALABRAS_RESPALDO = [
     "sol", "luna", "nube", "rio", "monte", "verde", "azul", "rojo", "claro", "oscuro",
     "perro", "gato", "lobo", "halcon", "veloz", "fuerte", "libre", "salto", "correr",
@@ -30,9 +26,7 @@ PALABRAS_RESPALDO = [
 
 DICCIONARIO_FRASES = set(PALABRAS_RESPALDO)
 
-# ==========================================
 # FUNCIONES DE DESCARGA EN SEGUNDO PLANO
-# ==========================================
 def actualizar_diccionario_online(callback_progreso=None):
     """Descarga listas y reporta progreso a la UI (Avanza hasta el 60%)."""
     global CONTRASENAS_VULNERABLES
@@ -75,9 +69,7 @@ def descargar_diccionario_frases(callback_progreso=None):
     if callback_progreso: callback_progreso(1.0)
     return False
 
-# ==========================================
 # LÓGICA DE GENERACIÓN
-# ==========================================
 def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):
     chars_permitidos = ""
     caracteres_obligatorios = []
@@ -123,9 +115,7 @@ def generar_frase(num_palabras=4):
     seleccion = [secrets.choice(lista_palabras) for _ in range(num_palabras)]
     return "-".join(seleccion)
 
-# ==========================================
 # LÓGICA DE AUDITORÍA
-# ==========================================
 def auditar_clave(password):
     if not password: return "#DDD", "Esperando entrada...", []
     

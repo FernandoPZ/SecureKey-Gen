@@ -23,9 +23,9 @@ CONTRASENAS_VULNERABLES = {
 
 PINS_PROHIBIDOS = {
     "0000", "1111", "2222", "3333", "4444", "5555", "6666", "7777", "8888", "9999", # Repeticiones
-    "1234", "2345", "3456", "4567", "5678", "6789", # Secuencias ascendentes
-    "9876", "8765", "7654", "6543", "5432", "4321", # Secuencias descendentes
-    "2580", "0852", "1379", "9731", "1212", "6969"  # Patrones de teclado visuales
+    "1234", "2345", "3456", "4567", "5678", "6789",                                 # Secuencias ascendentes
+    "9876", "8765", "7654", "6543", "5432", "4321",                                 # Secuencias descendentes
+    "2580", "0852", "1379", "9731", "1212", "6969"                                  # Patrones de teclado visuales
 }
 
 def actualizar_diccionario_online():
@@ -63,6 +63,33 @@ def actualizar_diccionario_online():
             
     return True, len(CONTRASENAS_VULNERABLES)
 
+# Lista interna de respaldo (Offline)
+PALABRAS_RESPALDO = [
+    "sol", "luna", "nube", "rio", "monte", "verde", "azul", "rojo", "claro", "oscuro",
+    "perro", "gato", "lobo", "halcon", "veloz", "fuerte", "libre", "salto", "correr",
+    "llave", "puerta", "casa", "camino", "viento", "fuego", "tierra", "mar", "arena"
+]
+
+# Variable global para las palabras
+DICCIONARIO_FRASES = set(PALABRAS_RESPALDO)
+
+def descargar_diccionario_frases():
+    """Descarga la lista BIP-39 en español (Estándar Criptográfico Mundial)."""
+    global DICCIONARIO_FRASES
+    
+    url = "https://raw.githubusercontent.com/bitcoin/bips/master/bip-0039/spanish.txt"
+    
+    try:
+        respuesta = requests.get(url, timeout=5)
+        if respuesta.status_code == 200:
+            palabras_limpias = respuesta.text.splitlines()
+            DICCIONARIO_FRASES.update(palabras_limpias)
+            return True, len(palabras_limpias)
+    except requests.RequestException as e:
+        print(f"⚠️ Error descargando BIP-39: {e}")
+        
+    return False, len(DICCIONARIO_FRASES)
+
 # LÓGICA DE GENERACIÓN
 def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):
     """Genera una contraseña criptográficamente segura, con filtro de calidad para PINs."""
@@ -97,16 +124,21 @@ def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):
         generador_seguro = secrets.SystemRandom()
         generador_seguro.shuffle(resultado)
         clave_final = ''.join(resultado)
-        
-        # Filtro Inteligente: Si es solo números y está en nuestra lista negra, RECHÁZALO y vuelve a intentar
+
         es_solo_numeros = usar_num and not (usar_min or usar_mayus or usar_sym)
         if es_solo_numeros and clave_final in PINS_PROHIBIDOS:
-            continue # El 'continue' hace que el bucle 'while' vuelva a empezar mágicamente
+            continue
             
-        return clave_final # Si pasa el filtro (o no es un PIN), lo entregamos
+        return clave_final
 
 def generar_hexadecimal(longitud):
     return secrets.token_hex(longitud // 2)
+
+def generar_frase(num_palabras=4):
+    """Genera una frase de contraseña uniendo palabras aleatorias."""
+    lista_palabras = list(DICCIONARIO_FRASES)
+    seleccion = [secrets.choice(lista_palabras) for _ in range(num_palabras)]
+    return "-".join(seleccion)
 
 # LÓGICA DE AUDITORÍA
 def auditar_clave(password):

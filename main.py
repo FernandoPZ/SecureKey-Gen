@@ -34,6 +34,15 @@ def aplicar_preset(seleccion):
         slider_longitud.set(16); var_min.set(True); var_mayus.set(True); var_num.set(True); var_sym.set(True)
     elif seleccion == "Llave Cripto (Hex)":
         generar_hex_ui()
+    elif seleccion == "Frase de Seguridad":
+        frase = security.generar_frase(4)
+        entry_gen.delete(0, 'end')
+        entry_gen.insert(0, frase)
+
+        color, texto, _ = security.auditar_clave(frase)
+        barra_seguridad_gen.configure(progress_color=color)
+        barra_seguridad_gen.set(1)
+        label_status_gen.configure(text=f"Seguridad: {texto}", text_color=optimizar_contraste(color))
         return
         
     actualizar_label_slider(slider_longitud.get())
@@ -97,6 +106,7 @@ app.minsize(450, 500)
 app.resizable(True, True)
 
 security.actualizar_diccionario_online()
+security.descargar_diccionario_frases()
 
 # --- ESTRUCTURA PRINCIPAL ---
 tabview = ctk.CTkTabview(app)
@@ -109,7 +119,7 @@ tab_ana = tabview.add(" 🔍 Analizador ")
 frame_top = ctk.CTkFrame(tab_gen, fg_color="transparent")
 frame_top.pack(fill="x", pady=(5, 10))
 
-opciones_presets = ["PIN (4 dígitos)", "Código Temporal (6 caps)", "Estándar Web (8 chars)", "Seguridad Máxima (16 chars)", "Llave Cripto (Hex)"]
+opciones_presets = ["PIN (4 dígitos)", "Código Temporal (6 caps)", "Estándar Web (8 chars)", "Seguridad Máxima (16 chars)", "Frase de Seguridad", "Llave Cripto (Hex)"]
 ctk.CTkOptionMenu(frame_top, values=opciones_presets, command=aplicar_preset).pack(side="left", fill="x", expand=True, padx=(0, 10))
 
 label_longitud_val = ctk.CTkLabel(frame_top, text="16 chars", font=ctk.CTkFont(weight="bold"), width=60)

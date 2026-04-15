@@ -4,6 +4,8 @@ import pyperclip
 import threading
 import time
 import security
+import os
+from PIL import Image
 
 # --- CONFIGURACIÓN DEL TEMA ---
 ctk.set_appearance_mode("System")
@@ -36,7 +38,14 @@ class KeyForgeApp(ctk.CTk):
         self.splash.geometry(f"400x250+{x}+{y}")
 
         # Diseño del Splash
-        ctk.CTkLabel(self.splash, text="🛡️", font=ctk.CTkFont(size=60)).pack(pady=(30, 5))
+        try:
+            ruta_imagen = os.path.join(os.path.dirname(__file__), "KeyGen.png")
+            logo_img = ctk.CTkImage(light_image=Image.open(ruta_imagen), size=(80, 80))
+            ctk.CTkLabel(self.splash, text="", image=logo_img).pack(pady=(20, 5))
+        except Exception as e:
+            print(f"Aviso: No se pudo cargar KeyGen.png - {e}")
+            ctk.CTkLabel(self.splash, text="🛡️", font=ctk.CTkFont(size=60)).pack(pady=(20, 5))
+
         ctk.CTkLabel(self.splash, text="KeyForge Suite", font=ctk.CTkFont(size=24, weight="bold")).pack()
         
         self.lbl_progreso = ctk.CTkLabel(self.splash, text="Iniciando protocolos de seguridad...")

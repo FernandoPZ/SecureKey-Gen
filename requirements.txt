@@ -1,3 +1,4 @@
 pyperclip==1.9.0
 requests==2.31.0
 customtkinter==5.2.2
+pillow==12.2.0

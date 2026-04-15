@@ -7,6 +7,7 @@ import time
 import security
 import os
 from PIL import Image
+import ctypes
 
 # --- CONFIGURACIÓN ESTÉTICA ---
 ctk.set_appearance_mode("Dark")
@@ -18,12 +19,22 @@ class KeyForgeApp(ctk.CTk):
         self.geometry("500x530")
         self.minsize(480, 530)
 
-        # Configuración del icono de ventana
         try:
-            ruta_icono = os.path.join(os.path.dirname(__file__), "KeyGen.png")
-            img_icono = tk.PhotoImage(file=ruta_icono)
-            self.iconphoto(True, img_icono)
-        except: pass
+            if os.name == 'nt':
+                myappid = 'portafolio.keyforge.suite.final'
+                ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+            ruta_png = os.path.join(os.path.dirname(__file__), "KeyGen.png")
+            ruta_ico = os.path.join(os.path.dirname(__file__), "KeyGen.ico")
+
+            if not os.path.exists(ruta_ico):
+                imagen_pil = Image.open(ruta_png)
+                imagen_pil.save(ruta_ico, format='ICO', sizes=[(64, 64)])
+
+            self.iconbitmap(ruta_ico)
+            
+        except Exception as e:
+            print(f"Aviso: No se pudo configurar el icono nativo - {e}")
 
         self.withdraw()
         self.actualizando_preset = False

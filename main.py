@@ -15,13 +15,13 @@ ctk.set_appearance_mode("Dark")
 class KeyForgeApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-        self.title("KeyForge Suite")
-        self.geometry("500x530")
-        self.minsize(480, 530)
+        self.title("KeyForge")
+        self.geometry("450x400")
+        self.minsize(450, 400)
 
         try:
             if os.name == 'nt':
-                myappid = 'portafolio.keyforge.suite.final'
+                myappid = 'portafolio.keyforge.final'
                 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
             ruta_png = os.path.join(os.path.dirname(__file__), "KeyGen.png")
@@ -60,7 +60,7 @@ class KeyForgeApp(ctk.CTk):
         except:
             ctk.CTkLabel(self.splash, text="KEYFORGE", font=("Consolas", 30)).pack(pady=(30, 5))
 
-        ctk.CTkLabel(self.splash, text="KeyForge Suite", font=ctk.CTkFont(size=22, weight="bold")).pack()
+        ctk.CTkLabel(self.splash, text="KeyForge", font=ctk.CTkFont(size=22, weight="bold")).pack()
         self.lbl_p = ctk.CTkLabel(self.splash, text="Cargando protocolos...", text_color="gray60")
         self.lbl_p.pack(pady=(15, 5))
         
@@ -118,13 +118,21 @@ class KeyForgeApp(ctk.CTk):
 
         # 3. Aplicar configuraciones
         if sel == "PIN (4 dígitos)":
-            self.slider_long.set(4); self.var_num.set(True)
+            self.slider_long.set(4)
+            self.var_num.set(True)
+        elif sel == "Código Temporal (6 caps)":
+            self.slider_long.set(6)
+            self.var_may.set(True)
+            self.var_num.set(True)
         elif sel == "Estándar Web (8 chars)":
-            self.slider_long.set(8); [v.set(True) for v in [self.var_min, self.var_may, self.var_num, self.var_sym]]
+            self.slider_long.set(8)
+            [v.set(True) for v in [self.var_min, self.var_may, self.var_num, self.var_sym]]
         elif sel == "Seguridad Máxima (16 chars)":
-            self.slider_long.set(16); [v.set(True) for v in [self.var_min, self.var_may, self.var_num, self.var_sym]]
+            self.slider_long.set(16)
+            [v.set(True) for v in [self.var_min, self.var_may, self.var_num, self.var_sym]]
         elif sel == "Frase de Seguridad":
-            self.habilitar_controles(False); self.slider_long.set(4)
+            self.habilitar_controles(False)
+            self.slider_long.set(4)
         
         # 4. Rellenar el contenedor estático
         if sel == "Llave Cripto (Hex)":

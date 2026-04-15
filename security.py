@@ -4,7 +4,21 @@ import requests
 
 # BASE DE DATOS DE VULNERABILIDADES
 CONTRASENAS_VULNERABLES = {
-    "123456", "password", "admin", "12345678", "12345", "qwerty"
+    # Clásicos Numéricos y Secuencias de Teclado (Universales)
+    "123456", "123456789", "12345678", "12345", "1234567", "111111", "1234", "123123", 
+    "qwerty", "qwertyuiop", "asdfgh", "zxcvbnm", "1q2w3e", "000000",
+
+    # Top Anglosajón (Inglés)
+    "password", "password123", "admin", "admin123", "iloveyou", "letmein", "monkey", 
+    "dragon", "sunshine", "welcome", "hello", "shadow", "football", "baseball", "ninja",
+
+    # Top Hispanohablante (Español)
+    "contraseña", "tequiero", "teamo", "madrid", "barcelona", "futbol", "america", 
+    "chivas", "cruzazul", "hola", "hola123", "princesa", "estrella", "corazon", 
+    "sistemas", "usuario", "invitado", "secreto", "dios",
+
+    # Nombres propios comunes usados como clave
+    "carlos", "daniel", "alejandro", "andrea", "maria", "juan", "david", "jorge", "pedro"
 }
 
 PINS_PROHIBIDOS = {
@@ -15,34 +29,39 @@ PINS_PROHIBIDOS = {
 }
 
 def actualizar_diccionario_online():
-    """Descarga la lista específica de credenciales comunes en español."""
+    """Descarga múltiples listas de credenciales y las fusiona."""
     global CONTRASENAS_VULNERABLES
-
-    url = "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/Language-Specific/Spanish_common-usernames-and-passwords.txt"
+    
+    # Lista de diccionarios a descargar
+    urls = [
+        # Top 10,000 global (Mayormente inglés y patrones numéricos)
+        "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/100k-most-used-passwords-NCSC.txt",
+        # Específico en español
+        "https://raw.githubusercontent.com/danielmiessler/SecLists/master/Passwords/Common-Credentials/Language-Specific/Spanish_common-usernames-and-passwords.txt"
+    ]
     
     headers = {"User-Agent": "KeyForgeApp/1.0"}
     
-    try:
-        respuesta = requests.get(url, headers=headers, timeout=7)
-        if respuesta.status_code == 200:
-            lineas = respuesta.text.lower().splitlines()
-            nuevas_claves = set()
+    for url in urls:
+        try:
+            respuesta = requests.get(url, headers=headers, timeout=5)
+            if respuesta.status_code == 200:
+                lineas = respuesta.text.lower().splitlines()
+                nuevas_claves = set()
+                
+                for linea in lineas:
+                    if ":" in linea:
+                        partes = linea.split(":")
+                        nuevas_claves.update([p.strip() for p in partes if p.strip()])
+                    else:
+                        nuevas_claves.add(linea.strip())
+                
+                CONTRASENAS_VULNERABLES.update(nuevas_claves)
+                
+        except requests.RequestException:
+            print(f"⚠️ Error al conectar con: {url}")
             
-            for linea in lineas:
-                # Si la línea tiene formato usuario:contraseña, extraemos ambas partes
-                if ":" in linea:
-                    partes = linea.split(":")
-                    nuevas_claves.update([p.strip() for p in partes if p.strip()])
-                else:
-                    nuevas_claves.add(linea.strip())
-            
-            CONTRASENAS_VULNERABLES.update(nuevas_claves)
-            return True, len(nuevas_claves)
-            
-    except requests.RequestException as e:
-        print(f"⚠️ Error al conectar con la lista española: {e}")
-        
-    return False, len(CONTRASENAS_VULNERABLES)
+    return True, len(CONTRASENAS_VULNERABLES)
 
 # LÓGICA DE GENERACIÓN
 def generar_clave(longitud, usar_min, usar_mayus, usar_num, usar_sym):

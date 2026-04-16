@@ -239,3 +239,5 @@ class KeyForgeApp(ctk.CTk):
 if __name__ == "__main__":
     app = KeyForgeApp()
     app.mainloop()
+
+# -- Hecho por Fernando Perez S. --

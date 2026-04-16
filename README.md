@@ -68,7 +68,8 @@ Asegúrate de tener Python 3.8 o superior instalado.
 ---
 
 ## 🔒 Seguridad y Privacidad
-KeyForge Suite funciona principalmente de manera local (Offline-first). La conexión a internet solo se utiliza durante el inicio (Splash Screen) para descargar y actualizar en memoria RAM el estándar BIP-39 y las listas de contraseñas vulnerables. **Ninguna contraseña generada o analizada abandona tu dispositivo ni se guarda en ninguna parte.**
+KeyForge Suite funciona principalmente de manera local (Offline-first). La conexión a internet solo se utiliza durante el inicio (Splash Screen) para descargar y actualizar en memoria RAM el estándar BIP-39 y las listas de contraseñas vulnerables.
+**Ninguna contraseña generada o analizada abandona tu dispositivo ni se guarda en ninguna parte.**
 
 ---
 *Desarrollado con pasión por la ciberseguridad.*

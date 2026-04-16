@@ -180,3 +180,5 @@ def auditar_clave(password):
     if entropia < 40: return "#FF6B6B", "DÉBIL", reporte
     if entropia < 65: return "#FFD93D", "MEDIA", reporte
     return "#28C76F", "FUERTE", reporte
+
+# -- Hecho por Fernando Perez S. --
